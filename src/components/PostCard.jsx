@@ -24,14 +24,17 @@ const formatDate = (dateString) => {
 const truncateContent = (content, maxLength = 150) => {
   if (!content) return '';
 
+  // Strip HTML tags by creating a temporary div
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = content;
 
+  // Extract text content safely
   const textContent = tempDiv.textContent || tempDiv.innerText || "";
 
-  if (textContent.length <= maxLength) return content;
-  
-  return textContent.slice(0, maxLength).trim() + "...";
+  // Truncate if necessary
+  return textContent.length <= maxLength
+    ? textContent
+    : textContent.slice(0, maxLength).trim() + "...";
 };
 
 
