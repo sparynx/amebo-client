@@ -90,10 +90,10 @@ const PostCard = ({ post }) => {
             <span>•</span>
             <span className="ml-2 whitespace-nowrap">{formatDate(post.createdAt)}</span>
           </div>
-          <div 
-            className="text-gray-600 mb-4 text-sm sm:text-base line-clamp-3"
-            dangerouslySetInnerHTML={{ __html: sanitizeContent(truncateContent(post.content)) }}
-          ></div>
+            <p className="text-gray-600 mb-4 text-sm sm:text-base line-clamp-3">
+            {truncateContent(sanitizeContent(post.content))}
+          </p>
+
 
 
           <div className="flex justify-between items-center mt-auto pt-4 border-gray-400 border-t">
