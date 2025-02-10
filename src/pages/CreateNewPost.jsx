@@ -8,6 +8,7 @@ import ReactQuill from "react-quill";
 import { FolderIcon } from "lucide-react";
 import axios from "axios";
 import "react-quill/dist/quill.snow.css";
+import { Link } from "react-router-dom";
 
 const CATEGORIES = [
   "Technology",
@@ -37,10 +38,10 @@ const CreateNewPost = () => {
       text: "You must be logged in to create a post.",
       icon: "warning",
     });
-    return <h2 className="text-center text-red-500">Please log in to create a post.</h2>;
+    return <h2 className="text-center text-red-500"><Link to="/login">Please log in to create a post.</Link></h2>;
     
   }
-  navigate("/login");
+  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
