@@ -5,6 +5,12 @@ import { useAddLikeMutation, useGetCommentsQuery, useGetLikesQuery, useRemoveLik
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
+import DOMPurify from 'dompurify';
+
+const sanitizeContent = (html) => {
+  return DOMPurify.sanitize(html);
+};
+
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -17,9 +23,17 @@ const formatDate = (dateString) => {
 
 const truncateContent = (content, maxLength = 150) => {
   if (!content) return '';
-  if (content.length <= maxLength) return content;
-  return content.slice(0, maxLength).trim() + '...';
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = content;
+
+  const textContent = tempDiv.textContent || tempDiv.innerText || "";
+
+  if (textContent.length <= maxLength) return content;
+  
+  return textContent.slice(0, maxLength).trim() + "...";
 };
+
 
 const PostCard = ({ post }) => {
     const { currentUser } = useAuth();
@@ -73,9 +87,12 @@ const PostCard = ({ post }) => {
             <span>•</span>
             <span className="ml-2 whitespace-nowrap">{formatDate(post.createdAt)}</span>
           </div>
-          <p className="text-gray-600 mb-4 text-sm sm:text-base line-clamp-3">
-            {truncateContent(post.content)}
-          </p>
+          <div 
+            className="text-gray-600 mb-4 text-sm sm:text-base line-clamp-3"
+            dangerouslySetInnerHTML={{ __html: sanitizeContent(truncateContent(post.content)) }}
+          ></div>
+
+
           <div className="flex justify-between items-center mt-auto pt-4 border-gray-400 border-t">
             <Link 
               to={`/post/${post._id}`} 
