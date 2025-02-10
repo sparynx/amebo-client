@@ -38,7 +38,9 @@ const CreateNewPost = () => {
       icon: "warning",
     });
     return <h2 className="text-center text-red-500">Please log in to create a post.</h2>;
+    
   }
+  navigate("/login");
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
