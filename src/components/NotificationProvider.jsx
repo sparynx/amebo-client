@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import io from 'socket.io-client';
