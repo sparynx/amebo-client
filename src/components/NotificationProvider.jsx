@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import io from 'socket.io-client';
 import { Bell, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // Create a style tag for custom animations
 const AnimationStyles = () => (
@@ -34,6 +34,7 @@ const socket = io(import.meta.env.VITE_API_URL || 'https://amebo-server.onrender
 
 export const NotificationProvider = ({ children }) => {
   const audioRef = useRef(new Audio('/notification.wav'));
+  const navigate = useNavigate();
 
   useEffect(() => {
     socket.on('connect', () => {
@@ -46,7 +47,7 @@ export const NotificationProvider = ({ children }) => {
 
     socket.on('newPost', (data) => {
       console.log('Received new post notification:', data);
-      const { notification } = data;
+      const { notification, post } = data;
       
       try {
         audioRef.current.currentTime = 0;
@@ -85,7 +86,7 @@ export const NotificationProvider = ({ children }) => {
                   <button 
                     className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-full transition-colors duration-200"
                     onClick={() => {
-                      <Link to={`/post/${post._id}`}></Link>
+                      navigate(`/post/${post._id}`);
                       toast.dismiss(t.id);
                     }}
                   >
@@ -122,7 +123,7 @@ export const NotificationProvider = ({ children }) => {
       socket.off('newPost');
       socket.disconnect();
     };
-  }, []);
+  }, [navigate]);
 
   return (
     <>
