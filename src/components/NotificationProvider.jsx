@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import io from 'socket.io-client';
 
@@ -8,9 +8,31 @@ const socket = io(import.meta.env.VITE_API_URL || 'https://amebo-server.onrender
 });
 
 export const NotificationProvider = ({ children }) => {
+  const [audio] = useState(() => typeof Audio !== 'undefined' ? new Audio('/notification.wav') : null);
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
+
+  // Sound playback function
+  const playNotificationSound = useCallback(() => {
+    if (audio && notificationEnabled) {
+      audio.currentTime = 0;
+      audio.play().catch(error => {
+        console.warn('Audio playback failed:', error);
+      });
+    }
+  }, [audio, notificationEnabled]);
+
   useEffect(() => {
+    // Load sound preference from localStorage
+    const savedPreference = localStorage.getItem('notificationSound');
+    if (savedPreference !== null) {
+      setNotificationEnabled(JSON.parse(savedPreference));
+    }
+
     socket.on('newPost', (data) => {
       const { notification } = data;
+      
+      // Play sound when notification arrives
+      playNotificationSound();
       
       toast.custom((t) => (
         <div
@@ -49,12 +71,29 @@ export const NotificationProvider = ({ children }) => {
       socket.off('newPost');
       socket.disconnect();
     };
-  }, []);
+  }, [playNotificationSound]);
+
+  // Add a simple sound toggle button
+  const SoundToggle = () => (
+    <div className="fixed bottom-4 right-4 bg-white p-2 rounded-full shadow-lg">
+      <button
+        onClick={() => {
+          setNotificationEnabled(!notificationEnabled);
+          localStorage.setItem('notificationSound', JSON.stringify(!notificationEnabled));
+        }}
+        className="p-2 hover:bg-gray-100 rounded-full"
+        title={notificationEnabled ? "Disable notification sound" : "Enable notification sound"}
+      >
+        {notificationEnabled ? '🔔' : '🔕'}
+      </button>
+    </div>
+  );
 
   return (
     <>
       {children}
       <Toaster />
+      <SoundToggle />
     </>
   );
 };
