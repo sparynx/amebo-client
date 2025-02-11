@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import io from 'socket.io-client';
 import { Bell, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Create a style tag for custom animations
 const AnimationStyles = () => (
@@ -84,7 +85,7 @@ export const NotificationProvider = ({ children }) => {
                   <button 
                     className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-full transition-colors duration-200"
                     onClick={() => {
-                      // Add your view action here
+                      <Link to={`/post/${post._id}`}></Link>
                       toast.dismiss(t.id);
                     }}
                   >
