@@ -112,7 +112,7 @@ export const NotificationProvider = ({ children }) => {
           </div>
         </div>
       ), {
-        duration: 4000,
+        duration: 6000,
         position: 'top-right',
       });
     });
