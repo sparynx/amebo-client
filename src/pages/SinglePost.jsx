@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Heart, MessageCircle, User, Calendar, Tag } from 'lucide-react';
+import { Heart, MessageCircle, User, Calendar, Tag, Share2, Twitter, Facebook, Link as LinkIcon } from 'lucide-react';
 import { useFetchPostByIdQuery, useAddLikeMutation, useRemoveLikeMutation, useAddCommentMutation } from '../redux/features/BlogsApi';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,13 +12,13 @@ const SinglePost = () => {
     const [addComment] = useAddCommentMutation();
     const [commentText, setCommentText] = useState('');
     const [isLikeAnimating, setIsLikeAnimating] = useState(false);
+    const [showShareMenu, setShowShareMenu] = useState(false);
 
     const { currentUser } = useAuth();
 
     const hasLiked = post?.likes?.some(like => like.userId === currentUser?.uid);
     const isLoadingLike = isLiking || isUnliking;
 
-    // Your existing handlers remain the same
     const handleLike = async () => {
         if (!currentUser) {
             alert("Please log in to like posts");
@@ -37,6 +37,57 @@ const SinglePost = () => {
             alert(error.data?.error || 'Failed to process like action');
         }
         setTimeout(() => setIsLikeAnimating(false), 1000);
+    };
+
+    const handleShare = async (platform) => {
+        const shareUrl = window.location.href;
+        const shareTitle = post.title;
+        const shareText = `Check out this post: ${post.title}`;
+
+        switch (platform) {
+            case 'native':
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: shareTitle,
+                            text: shareText,
+                            url: shareUrl,
+                        });
+                    } catch (err) {
+                        console.log('Error sharing:', err);
+                    }
+                } else {
+                    setShowShareMenu(true);
+                }
+                break;
+            case 'twitter':
+                window.open(
+                    `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+                    '_blank'
+                );
+                break;
+            case 'facebook':
+                window.open(
+                    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+                    '_blank'
+                );
+                break;
+            case 'whatsapp':
+                window.open(
+                    `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
+                    '_blank'
+                );
+                break;
+            case 'copy':
+                try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    alert('Link copied to clipboard!');
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                }
+                break;
+        }
+        setShowShareMenu(false);
     };
 
     const handleComment = async () => {
@@ -94,12 +145,10 @@ const SinglePost = () => {
     return (
         <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden mt-10 transition-all duration-300 hover:shadow-2xl">
             <div className="p-6 md:p-8">
-                {/* Post Header */}
                 <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 transition-colors duration-300">
                     {post.title}
                 </h1>
                 
-                {/* Author Info and Categories */}
                 <div className="flex flex-wrap items-center gap-3 mb-6">
                     <div className="flex items-center gap-3 text-gray-600">
                         <User size={18} />
@@ -108,7 +157,6 @@ const SinglePost = () => {
                         <span className="text-sm">{new Date(post.createdAt).toLocaleDateString()}</span>
                     </div>
                     
-                    {/* Categories Display */}
                     {post.categories && (
                         <div className="flex items-center gap-2 ml-auto">
                             <Tag size={18} className="text-blue-500" />
@@ -119,7 +167,6 @@ const SinglePost = () => {
                     )}
                 </div>
                 
-                {/* Image Container */}
                 <div className="relative w-full h-72 md:h-96 mb-8 rounded-xl overflow-hidden group">
                     <img 
                         src={post.image || post.imageUrl}
@@ -133,14 +180,11 @@ const SinglePost = () => {
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                 </div>
 
-                {/* Content with preserved formatting */}
                 <div 
                     className="prose prose-lg max-w-none mb-8 prose-headings:font-bold prose-headings:text-gray-800 prose-p:text-gray-600 prose-a:text-blue-500 prose-a:no-underline hover:prose-a:underline" 
                     dangerouslySetInnerHTML={{ __html: post.content }}
                 />
 
-                {/* Rest of your component remains exactly the same */}
-                {/* Interaction Buttons */}
                 <div className="flex items-center gap-6 mb-8">
                     <button
                         onClick={handleLike}
@@ -164,11 +208,52 @@ const SinglePost = () => {
                         <MessageCircle size={20} />
                         <span className="font-medium">({post.comments?.length || 0})</span>
                     </div>
+
+                    <div className="relative">
+                        <button
+                            onClick={() => handleShare('native')}
+                            className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all duration-300"
+                        >
+                            <Share2 size={20} />
+                            <span className="hidden sm:inline font-medium">Share</span>
+                        </button>
+
+                        {showShareMenu && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-2 border border-gray-200">
+                                <button
+                                    onClick={() => handleShare('twitter')}
+                                    className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                    <Twitter size={18} className="text-blue-400" />
+                                    Twitter
+                                </button>
+                                <button
+                                    onClick={() => handleShare('facebook')}
+                                    className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                    <Facebook size={18} className="text-blue-600" />
+                                    Facebook
+                                </button>
+                                <button
+                                    onClick={() => handleShare('whatsapp')}
+                                    className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                    <span className="text-green-500">WhatsApp</span>
+                                </button>
+                                <button
+                                    onClick={() => handleShare('copy')}
+                                    className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                    <LinkIcon size={18} className="text-gray-600" />
+                                    Copy Link
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <hr className="my-8 border-gray-200" />
 
-                {/* Comments Section */}
                 <div className="space-y-6">
                     <h3 className="text-2xl font-semibold flex items-center gap-2 text-gray-800">
                         <MessageCircle size={24} />
@@ -199,7 +284,6 @@ const SinglePost = () => {
                         )}
                     </div>
 
-                    {/* Comment Input */}
                     {currentUser ? (
                         <div className="flex flex-col sm:flex-row gap-3 mt-8">
                             <input
